@@ -222,7 +222,7 @@ if raw_data is not None:
     # Preparar el DataFrame para la tabla editable
     df_params = pd.DataFrame({
         'Parámetro': list(display_to_original.keys()),
-        'Valor (Crudo)': list(raw_data.values())
+        'Valor (Base de Datos NHTSA)': list(raw_data.values())
     })
     
     # Mostrar tabla editable para validación manual
@@ -232,7 +232,7 @@ if raw_data is not None:
     valid_data = {}
     for _, row in edited_df.iterrows():
         orig_key = display_to_original[row['Parámetro']]
-        val = pd.to_numeric(row['Valor (Crudo)'], errors='coerce')
+        val = pd.to_numeric(row['Valor (Base de Datos NHTSA)'], errors='coerce')
         valid_data[orig_key] = 0.0 if pd.isna(val) else float(val)
     
     # 2. Ejecutar Cálculo
@@ -314,7 +314,7 @@ if raw_data is not None:
             # Despliegue de métricas intermedias
             col_m1, col_m2, col_m3 = st.columns(3)
             col_m1.metric("Vel. sin daño (b0)", f"{res['b0_raw']:.2f} {units['v']}")
-            col_m2.metric("Aplastamiento Medio (C_avg)", f"{res['c_avg']:.2f} {units['l']}")
+            col_m2.metric("Deformación Media (C_avg)", f"{res['c_avg']:.2f} {units['l']}")
             col_m3.metric("Pendiente (b1)", f"{res['b1']:.3f} 1/s")
 
             # Despliegue de Coeficientes Finales
