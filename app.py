@@ -140,7 +140,7 @@ def extract_metadata(file, ext):
 # ==========================================
 # INTERFAZ DE USUARIO (STREAMLIT)
 # ==========================================
-st.set_page_config(page_title="Cálculo Coeficientes Rigidez", layout="wide")
+st.set_page_config(page_title="Calculador Crash 3", layout="wide")
 
 st.title("🚗 App Cálculo Coeficientes Rigidez")
 st.markdown("Extrae metadata de la NHTSA y calcula automáticamente los coeficientes **A, B y G**.")
