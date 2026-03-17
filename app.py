@@ -12,26 +12,18 @@ import requests
 class StiffnessCalculator:
     """Clase para calcular los coeficientes de rigidez A, B y G usando el algoritmo CRASH3."""
     
-    def __init__(self, system='US', impact_type='Frontal/Trasero'):
+    def __init__(self, system='US'):
         self.system = system
-        self.impact_type = impact_type
         # Gravedad en in/sec^2
         self.g_us = 386.4 
 
-    def get_b0(self):
-        """Devuelve b0 (velocidad sin deformación permanente) según el tipo de impacto."""
-        if self.impact_type == 'Lateral':
-            return {'US': 2.0, 'SI': 3.22}[self.system]  # 2 mph o 3.22 km/h
-        else:
-            return {'US': 5.0, 'SI': 8.05}[self.system]  # 5 mph o 8.05 km/h
-
-    def calculate(self, weight, v_imp, dv, l_test, crush_profile, velocity_source='Delta V'):
+    def calculate(self, weight, v_imp, dv, l_test, crush_profile, b0_user, velocity_source='Velocidad impacto (test)'):
         """Ejecuta los cálculos secuenciales de CRASH3."""
         # Selección de la velocidad a utilizar para el cálculo de b1 según el investigador
         v_test = dv if velocity_source == 'Delta V' else v_imp
 
         # 1. Velocidad sin daño (b0)
-        b0_raw = self.get_b0()
+        b0_raw = b0_user
         
         # Área de deformación (Regla Trapezoidal de 6 puntos)
         c1, c2, c3, c4, c5, c6 = crush_profile
@@ -166,11 +158,17 @@ with st.sidebar:
     if system == 'SI':
         is_mm = st.checkbox("Medidas de deformación (L, C1-C6) en mm", value=True, help="Si marcas esta opción, en la interfaz se indicará en mm y se convertirá a cm internamente.")
     
-    impact_type = st.selectbox("Tipo de Impacto", ['Frontal/Trasero', 'Lateral'],
-                               help="Modifica el b0 por defecto (Frontal: 5mph / Lat: 2mph)")
+    if system == 'SI':
+        def_b0, unit_b0 = 8.05, "km/h"
+        help_b0 = "Valores estándar: Frontal/Trasero = 8.05 km/h | Lateral = 3.22 km/h"
+    else:
+        def_b0, unit_b0 = 5.0, "mph"
+        help_b0 = "Valores estándar: Frontal/Trasero = 5.0 mph | Lateral = 2.0 mph"
+        
+    b0_user = st.number_input(f"Velocidad sin daño (b0) [{unit_b0}]", value=def_b0, help=help_b0)
                                
-    velocity_source = st.radio("Velocidad para cálculo de b1:", ["Delta V", "Velocidad de Impacto"],
-                               help="Distintas corrientes investigadoras difieren en el criterio. Por defecto CRASH usa el diferencial.")
+    velocity_source = st.radio("Velocidad para cálculo de b1:", ["Velocidad impacto (test)", "Delta V"],
+                               help="Distintas corrientes investigadoras difieren en el criterio. Por defecto dejamos la Velocidad de Impacto.")
     
     st.markdown("---")
     st.markdown("**Desarrollado para validación de datos CRASH3.**")
@@ -252,8 +250,8 @@ if raw_data is not None:
             st.error("Error: El Peso y el Ancho de la zona (L_test) deben ser mayores a 0 para el cálculo.")
         else:
             # Instanciar el calculador
-            calc = StiffnessCalculator(system=system, impact_type=impact_type)
-            res = calc.calculate(wt, v, dv, l_test, c_prof, velocity_source=velocity_source)
+            calc = StiffnessCalculator(system=system)
+            res = calc.calculate(wt, v, dv, l_test, c_prof, b0_user=b0_user, velocity_source=velocity_source)
             
             # Definir strings de unidades
             units = {
@@ -298,10 +296,10 @@ if raw_data is not None:
                     
             if ang_match:
                 ang = int(ang_match.group(1))
-                if impact_type == 'Frontal/Trasero' and ang not in [0, 360, 180]:
-                    issue_msgs.append(f"Ángulo de impacto principal: **{ang}º** (difícil cuadrar con frontal/trasero puro).")
-                elif impact_type == 'Lateral' and ang not in [90, 270]:
-                    issue_msgs.append(f"Ángulo de impacto lateral detectado: **{ang}º**.")
+                if ang not in [0, 360, 180, 90, 270]:
+                    issue_msgs.append(f"Ángulo de impacto principal: **{ang}º** (difícil cuadrar con impactos puros planares CRASH3).")
+                elif ang in [90, 270]:
+                    issue_msgs.append(f"Ángulo de impacto lateral detectado: **{ang}º**. (Comprueba que has ajustado el valor b0 equivalente para impactos laterales).")
             
             # --- Mostrar Información al Usuario ---
             if veh_info:
