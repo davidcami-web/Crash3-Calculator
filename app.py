@@ -167,8 +167,8 @@ with st.sidebar:
         
     b0_user = st.number_input(f"Velocidad sin daño (b0) [{unit_b0}]", value=def_b0, help=help_b0)
                                
-    velocity_source = st.radio("Velocidad para cálculo de b1:", ["Velocidad impacto (test)", "Delta V"],
-                               help="Distintas corrientes investigadoras difieren en el criterio. Por defecto dejamos la Velocidad de Impacto.")
+    velocity_source = st.radio("Velocidad para cálculo de b1:", ["Delta V", "Velocidad impacto (test)"],
+                               help="Distintas corrientes investigadoras difieren en el criterio. Por defecto CRASH usa el diferencial (Delta V).")
     
     st.markdown("---")
     st.markdown("**Desarrollado para validación de datos CRASH3.**")
