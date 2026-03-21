@@ -141,7 +141,7 @@ st.markdown("Extrae metadata de la NHTSA y calcula automáticamente los coeficie
 with st.sidebar:
     st.header("1. Configuración del Test")
     
-    data_source = st.radio("Origen de datos", ["NHTSA Online (Auto)", "Subir Archivo Manual"])
+    data_source = st.radio("Origen de datos", ["[NHTSA Online](https://www.nhtsa.gov/research-data/research-testing-databases/#/vehicle) (Auto)", "Subir Archivo Manual"])
     
     uploaded_file = None
     test_id = ""
@@ -177,7 +177,7 @@ with st.sidebar:
 raw_data = None
 raw_text = ""
 
-if data_source == "NHTSA Online (Auto)" and test_id:
+if data_source == "[NHTSA Online](https://www.nhtsa.gov/research-data/research-testing-databases/#/vehicle) (Auto)" and test_id:
     api_url = f"https://nrd.api.nhtsa.dot.gov/nhtsa/vehicle/api/v1/vehicle-database-test-results/metadata/{test_id.strip()}"
     with st.spinner("Descargando metadata desde NHTSA..."):
         try:
