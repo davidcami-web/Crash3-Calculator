@@ -322,6 +322,35 @@ if raw_data is not None:
             col2.warning(f"### **B:** {res['B']:.0f}\n#### {units['B']}")
             col3.info(f"### **G:** {res['G']:.0f}\n#### {units['G']}")
 
+            # --- Comprobación cruzada EES ---
+            w_seg = l_test / 5.0
+            E_total = 0.0
+            for i in range(5):
+                c1_s = c_prof[i]
+                c2_s = c_prof[i+1]
+                G_seg = res['G'] if (c1_s > 0 or c2_s > 0) else 0.0
+                E_total += w_seg * (res['A'] * (c1_s + c2_s) / 2.0 + res['B'] * (c1_s**2 + c1_s * c2_s + c2_s**2) / 6.0 + G_seg)
+                
+            if system == 'US':
+                mass_us = wt / 386.4
+                ees_val = (2 * E_total / mass_us)**0.5 / 17.6 if mass_us > 0 else 0.0
+            else:
+                E_joules = E_total / 100.0
+                ees_val = (2 * E_joules / wt)**0.5 * 3.6 if wt > 0 else 0.0
+
+            st.markdown("---")
+            st.markdown("### 🔍 Comprobación Cruzada: EES (Energy Equivalent Speed)")
+            st.markdown("Cálculo inverso del EES empleando los coeficientes **A, B, G** resultantes, las **6 medidas de deformación (C1-C6)** y la masa del vehículo. El valor obtenido debe ser congruente con la velocidad de origen.")
+            
+            v_ref = dv if velocity_source == 'Delta V' else v
+            diff = abs(ees_val - v_ref)
+            diff_pct = (diff / v_ref * 100) if v_ref > 0 else 0.0
+            
+            col_e1, col_e2, col_e3 = st.columns(3)
+            col_e1.metric(f"Velocidad Ref. ({velocity_source})", f"{v_ref:.2f} {units['v']}")
+            col_e2.metric("EES Calculado con C1-C6", f"{ees_val:.2f} {units['v']}")
+            col_e3.metric("Diferencia Absoluta", f"{diff:.2f} {units['v']}", f"{diff_pct:.1f}%", delta_color="inverse")
+
             # Exportar Resultados
             export_dict = {
                 'Inputs': valid_data,
